@@ -3,11 +3,13 @@ use json_sender::files::Files;
 use json_sender::http::HTTP;
 use json_sender::settings::Settings;
 
-/// A program to send HTTP requests from files.
+/// A simple program to send HTTP requests from .json files.
 #[derive(Parser, Debug)]
-#[command(author="Gabriel Fioravante", version="0.1.0", about, long_about = None)]
+#[command(name = "json-sender")]
+#[command(author = "Gabriel Fioravante")]
+#[command(version="0.1.0", about, long_about = None)]
 pub struct Args {
-    /// Location of config file. Ex: sender.toml
+    /// Config file path. Ex: "~/files/sender.toml".
     #[arg(short, long)]
     config: Option<String>,
 }
