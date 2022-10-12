@@ -12,6 +12,18 @@ cd target/release
 
 ```
 
+## Usage
+By default, json-sender looks for a configuration file in the current directory, but optionally you can pass a path to other config file via command line argument.
+
+```sh
+Usage: json-sender [OPTIONS]
+
+Options:
+  -c, --config <CONFIG>  Config file path. Ex: "~/files/sender.toml"
+  -h, --help             Print help information
+  -V, --version          Print version information
+```
+
 ## Configuration
 TOML example:
 ```toml
@@ -63,4 +75,5 @@ files_to_send
 ```
 
 ## Features to implement
-- [ ]  Generate files with requests responses
+- [ ] Generate files with requests responses
+- [ ] Add target parameter to CLI
