@@ -1,5 +1,5 @@
 # JSON Sender
-A simple program to send HTTP requests from .json files.
+A simple program to send HTTP requests from .json files. Made for learning purposes.
 
 ## Install 
 At this point, the only way to use this program is building it and getting the executable at `target/release`.
