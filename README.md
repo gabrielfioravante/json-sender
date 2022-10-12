@@ -37,7 +37,7 @@ RANDOM = "/random_endpoints"
 ```
 
 ## Files
-Every file name must be composed of `<METHOD>_<KEY>_<OPTIONAL ID>_<DATETIME || SOMETHING UNIQUE>.json` .
+Every file name must be composed of `<METHOD>_<KEY>_<OPTIONAL ID>_<DATETIME || SOMETHING UNIQUE>.json`.
 
 Examples:
 ```
