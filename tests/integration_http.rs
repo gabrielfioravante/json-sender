@@ -1,3 +1,4 @@
+use std::sync::Arc;
 use json_sender::files::Files;
 use json_sender::http::HTTP;
 use json_sender::settings::Settings;
@@ -13,13 +14,15 @@ async fn http() {
     let settings = Settings::new(Some("mock/sender.toml".to_owned()));
 
     let files = Files::new(settings.target.clone(), settings.bindinds.clone());
-    let mut http = HTTP::new(settings.clone());
-    http.use_auth(settings.auth);
+    let http = Arc::new(HTTP::new(settings));
 
     let file_list = files.get_req_info_list();
 
     for f in file_list {
-        http.handle(f).await;
+        let h = Arc::clone(&http);
+        tokio::spawn(async move {
+            h.handle(f).await;
+        }).await.unwrap();
     }
 
     let exists = Path::new("mock/files/success/POST_POSTS_20220101.json")

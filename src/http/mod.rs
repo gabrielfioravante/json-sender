@@ -87,6 +87,25 @@ fn manage_success(info: ReqInfo) {
     log::info!("`{}` sent!", info.file_data.name)
 }
 
+fn manage_auth(auth_info: Option<Auth>) -> AuthType {
+    if let Some(auth) = auth_info {
+        if let Some(bearer) = auth.bearer {
+            return AuthType::Bearer(bearer.token);
+        };
+
+        if let Some(basic) = auth.basic {
+            AuthType::Basic {
+                user: basic.username,
+                pass: basic.password,
+            }
+        } else {
+            AuthType::None
+        }
+    } else {
+        AuthType::None
+    }
+}
+
 pub struct HTTP {
     client: reqwest::Client,
     base_url: String,
@@ -98,12 +117,8 @@ impl HTTP {
         HTTP {
             client: reqwest::Client::new(),
             base_url: settings.base_url,
-            auth: AuthType::None
+            auth: manage_auth(settings.auth),
         }
-    }
-
-    pub fn use_auth(&mut self, auth: Option<Auth>) {
-        self.auth = self.manage_auth(auth);
     }
 
     pub async fn handle(&self, info: ReqInfo) {
@@ -121,24 +136,5 @@ impl HTTP {
 
     pub fn generate_url_with_id(&self, endpoint: &String, id: &String) -> String {
         self.base_url.to_owned() + endpoint + "/" + id
-    }
-
-    fn manage_auth(&self, auth_info: Option<Auth>) -> AuthType {
-        if let Some(auth) = auth_info {
-            if let Some(bearer) = auth.bearer {
-                return AuthType::Bearer(bearer.token);
-            };
-
-            if let Some(basic) = auth.basic {
-                AuthType::Basic {
-                    user: basic.username,
-                    pass: basic.password,
-                }
-            } else {
-                AuthType::None
-            }
-        } else {
-            AuthType::None
-        }
     }
 }
