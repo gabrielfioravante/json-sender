@@ -2,6 +2,7 @@ use json_sender::files::Files;
 use json_sender::http::HTTP;
 use json_sender::settings::Settings;
 use std::sync::Arc;
+use std::time::Instant;
 
 use std::path::Path;
 
@@ -17,9 +18,15 @@ async fn http() {
     let files = Files::new(settings.target.clone(), settings.bindinds.clone());
     let http = Arc::new(HTTP::new(settings));
 
+    let measure_file = Instant::now();
     let file_list = files.get_req_info_list();
+    let files_duration = measure_file.elapsed();
+
+    log::info!("Processed files in: {:?}", files_duration);
 
     assert_eq!(file_list.len(), 3);
+
+    let measure_requests = Instant::now();
 
     for f in file_list {
         let h = Arc::clone(&http);
@@ -29,6 +36,9 @@ async fn http() {
         .await
         .unwrap();
     }
+
+    let requests_duration = measure_requests.elapsed();
+    log::info!("Sent requests in: {:?}", requests_duration);
 
     test_post();
     test_get();

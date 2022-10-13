@@ -1,6 +1,7 @@
 use crate::{files::Files, http::HTTP, settings::Settings};
 use clap::Parser;
 use std::sync::Arc;
+use std::time::Instant;
 
 pub mod files;
 pub mod http;
@@ -30,9 +31,16 @@ pub async fn init() {
     let files = Files::new(settings.target.clone(), settings.bindinds.clone());
     let http = Arc::new(HTTP::new(settings));
 
+    // Process files
+    let measure_file = Instant::now();
     let file_list = files.get_req_info_list();
+    let files_duration = measure_file.elapsed();
 
+    log::info!("Processed files in: {:?}", files_duration);
     log::info!("{} requests to send", file_list.len());
+
+    // Send requests
+    let measure_requests = Instant::now();
 
     for f in file_list {
         let h = Arc::clone(&http);
@@ -42,4 +50,7 @@ pub async fn init() {
         .await
         .unwrap();
     }
+
+    let requests_duration = measure_requests.elapsed();
+    log::info!("Sent requests in: {:?}", requests_duration);
 }
