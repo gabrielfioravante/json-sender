@@ -2,15 +2,23 @@ use std::fs::File;
 use std::fs;
 use std::io::{Error, Write};
 
+//TODO: Find a better way to setup things before tests
 pub fn setup() {
     fs::create_dir_all("mock/files").unwrap();
     fs::create_dir_all("mock/files/success").unwrap();
     fs::create_dir_all("mock/files/error").unwrap();
     create_config_file().unwrap();
     create_post_file().unwrap();
+    create_get_file().unwrap();
+    create_put_file().unwrap();
+
+    env_logger::builder()
+        .filter_level(log::LevelFilter::Info)
+        .init();
 }
 
-pub fn end() {
+//TODO: Find a better way to cleanup things after tests
+pub fn cleanup() {
     fs::remove_dir_all("mock").unwrap();
 }
 
@@ -24,15 +32,7 @@ target = "mock/files"
 
 [bindinds]
 POSTS = "/posts"
-
-[auth]
-
-[auth.bearer]
-token = "some_token"
-
-[auth.basic]
-username = "john"
-password = "123"
+USERS = "/users"
 "#
     )?;
 
@@ -40,10 +40,31 @@ password = "123"
 }
 
 fn create_post_file() -> Result<(), Error> {
-    let mut file = File::create("mock/files/POST_POSTS_20220101.json")?;
+    let mut file = File::create("mock/files/POST_POSTS_1644806288.json")?;
     write!(
         file,
         r#"{{"title": "foo", "body": "bar", "userId": 1 }}"#
+    )?;
+
+    Ok(())
+}
+
+fn create_get_file() -> Result<(), Error> {
+    let mut file = File::create("mock/files/GET_USERS_1644806288.json")?;
+    write!(
+        file,
+        r#""#
+    )?;
+
+    Ok(())
+}
+
+
+fn create_put_file() -> Result<(), Error> {
+    let mut file = File::create("mock/files/PUT_USERS_1_1644806288.json")?;
+    write!(
+        file,
+        r#"{{"name": "gabriel"}}"#
     )?;
 
     Ok(())
