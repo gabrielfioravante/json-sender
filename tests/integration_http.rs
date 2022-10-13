@@ -15,10 +15,9 @@ async fn http() {
 
     let settings = Settings::new(Some("mock/sender.toml".to_owned()));
 
-    let files = Files::new(settings.target.clone(), settings.bindinds.clone());
-    let http = Arc::new(HTTP::new(settings));
-
+    // Process files
     let measure_file = Instant::now();
+    let files = Files::new(settings.target.clone(), settings.bindinds.clone());
     let file_list = files.get_req_info_list();
     let files_duration = measure_file.elapsed();
 
@@ -26,6 +25,8 @@ async fn http() {
 
     assert_eq!(file_list.len(), 3);
 
+    // Send requests
+    let http = Arc::new(HTTP::new(settings));
     let measure_requests = Instant::now();
 
     for f in file_list {

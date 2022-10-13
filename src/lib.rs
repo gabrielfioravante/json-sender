@@ -28,11 +28,9 @@ pub async fn init() {
     let args = Args::parse();
     let settings = Settings::new(args.config);
 
-    let files = Files::new(settings.target.clone(), settings.bindinds.clone());
-    let http = Arc::new(HTTP::new(settings));
-
     // Process files
     let measure_file = Instant::now();
+    let files = Files::new(settings.target.clone(), settings.bindinds.clone());
     let file_list = files.get_req_info_list();
     let files_duration = measure_file.elapsed();
 
@@ -40,6 +38,7 @@ pub async fn init() {
     log::info!("{} requests to send", file_list.len());
 
     // Send requests
+    let http = Arc::new(HTTP::new(settings));
     let measure_requests = Instant::now();
 
     for f in file_list {
