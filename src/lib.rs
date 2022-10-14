@@ -31,7 +31,7 @@ pub async fn init() {
     // Process files
     let measure_file = Instant::now();
     let files = Files::new(settings.target.clone(), settings.bindinds.clone());
-    let file_list = files.get_req_info_list();
+    let file_list = files.list();
     let files_duration = measure_file.elapsed();
 
     log::info!("Processed files in: {:?}", files_duration);

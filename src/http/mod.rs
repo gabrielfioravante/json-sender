@@ -34,7 +34,7 @@ enum RequestValidation {
 
 #[async_trait]
 trait Request {
-    fn make(&self, http: &HTTP, info: ReqInfo) -> RequestValidation;
+    async fn make(&self, http: &HTTP, info: ReqInfo) -> RequestValidation;
 
     fn set_auth(&self, builder: RequestBuilder, http: &HTTP) -> RequestBuilder {
         match &http.auth {
@@ -50,40 +50,40 @@ trait Request {
         match req {
             RequestValidation::Valid(req, info) => {
                 let res = req.send().await;
-                manage_request_result(res, info)
+                manage_request_result(res, info).await
             }
 
-            RequestValidation::NotValid(info) => manage_error(info),
+            RequestValidation::NotValid(info) => manage_error(info).await,
         }
     }
 
     async fn handle(&self, http: &HTTP, info: ReqInfo) {
-        self.send(self.make(http, info)).await;
+        self.send(self.make(http, info).await).await;
     }
 }
 
-fn manage_request_result(res: Result<Response>, info: ReqInfo) {
+async fn manage_request_result(res: Result<Response>, info: ReqInfo) {
     match res {
         Ok(r) => {
             let status = r.status();
 
             if status != 200 && status != 201 {
-                manage_error(info)
+                manage_error(info).await
             } else {
-                manage_success(info)
+                manage_success(info).await
             }
         }
-        Err(_) => manage_error(info),
+        Err(_) => manage_error(info).await,
     }
 }
 
-fn manage_error(info: ReqInfo) {
-    info.move_to_folder("error/");
+async fn manage_error(info: ReqInfo) {
+    info.move_to_folder("error/").await;
     log::error!("`{}` went wrong!", info.file_data.name)
 }
 
-fn manage_success(info: ReqInfo) {
-    info.move_to_folder("success/");
+async fn manage_success(info: ReqInfo) {
+    info.move_to_folder("success/").await;
     log::info!("`{}` sent!", info.file_data.name)
 }
 

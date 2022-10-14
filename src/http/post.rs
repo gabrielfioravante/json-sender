@@ -1,11 +1,13 @@
 use crate::files::ReqInfo;
 use crate::http::{Request, RequestValidation, HTTP, AuthType};
+use async_trait::async_trait;
 
 pub struct Post {}
 
+#[async_trait]
 impl Request for Post {
-    fn make(&self, http: &HTTP, info: ReqInfo) -> RequestValidation {
-        let json = info.read_file();
+    async fn make(&self, http: &HTTP, info: ReqInfo) -> RequestValidation {
+        let json = info.read_file().await;
 
         match json {
             Ok(j) => {

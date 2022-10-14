@@ -1,11 +1,13 @@
 use crate::files::ReqInfo;
-use crate::http::{Request, RequestValidation, HTTP, AuthType};
+use crate::http::{AuthType, Request, RequestValidation, HTTP};
+use async_trait::async_trait;
 
 pub struct Put {}
 
+#[async_trait]
 impl Request for Put {
-    fn make(&self, http: &HTTP, info: ReqInfo) -> RequestValidation {
-        let json = info.read_file();
+    async fn make(&self, http: &HTTP, info: ReqInfo) -> RequestValidation {
+        let json = info.read_file().await;
 
         match json {
             Ok(j) => {

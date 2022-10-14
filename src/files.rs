@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use crate::http::Methods;
 use anyhow::{anyhow, Result};
 use rayon::prelude::*;
+use std::collections::HashMap;
 use std::fs;
 
 #[derive(Debug)]
@@ -24,77 +24,68 @@ pub struct ReqInfo {
 }
 
 impl ReqInfo {
-    pub fn read_file(&self) -> Result<String> {
-        let file_content = fs::read_to_string(&self.file_data.path)?;
+    pub async fn read_file(&self) -> Result<String> {
+        let file_content = tokio::fs::read_to_string(&self.file_data.path).await?;
         Ok(file_content)
     }
 
-    pub fn move_to_folder(&self, folder: &str) {
+    pub async fn move_to_folder(&self, folder: &str) {
         let mut new_path = self.file_data.path.replace(&self.file_data.name, "");
 
         new_path.push_str(folder);
         new_path.push_str(&self.file_data.name);
 
-        fs::rename(&self.file_data.path, new_path).unwrap();
+        tokio::fs::rename(&self.file_data.path, new_path)
+            .await
+            .unwrap();
     }
 }
 
 pub struct Files {
-    list: Vec<fs::DirEntry>,
     target: String,
-    bindinds: HashMap<String, String>
+    bindinds: HashMap<String, String>,
+}
+
+fn create_dirs(target: &String) {
+    fs::create_dir_all(target.to_string() + "/error").unwrap();
+    fs::create_dir_all(target.to_string() + "/success").unwrap();
 }
 
 impl Files {
     pub fn new(target: String, bindinds: HashMap<String, String>) -> Self {
-        let files = fs::read_dir(&target).unwrap();
+        create_dirs(&target);
+        Files { target, bindinds }
+    }
 
-        Files {
-            list: files
-                .par_bridge()
-                .filter_map(|f| match f {
-                    Ok(f) => {
-                        if f.file_type().unwrap().is_file() {
-                            Some(f)
+    pub fn list(&self) -> Vec<ReqInfo> {
+        let files = fs::read_dir(&self.target).unwrap();
+
+        files
+            .par_bridge()
+            .filter_map(|file| -> Option<ReqInfo> {
+                match file {
+                    Ok(file) => {
+                        if file.file_type().unwrap().is_file() {
+                            let parsed_file = self.parse_file(&file);
+                            match parsed_file {
+                                Ok(file) => Some(file),
+                                Err(e) => {
+                                    log::error!(
+                                        "{}: {}",
+                                        file.file_name().to_str().unwrap_or("Unkown file name"),
+                                        e
+                                    );
+                                    None
+                                }
+                            }
                         } else {
                             None
                         }
                     }
-
                     Err(_) => None,
-                })
-                .collect(),
-                target,
-                bindinds
-        }
-    }
-
-    pub fn create_dirs(&self) {
-        fs::create_dir_all(self.target.to_string() + "/error").unwrap();
-        fs::create_dir_all(self.target.to_string() + "/success").unwrap();
-    }
-
-    pub fn get_req_info_list(&self) -> Vec<ReqInfo> {
-        let req_info_list = self
-            .list
-            .par_iter()
-            .filter_map(|file| {
-                let parsed_file = self.parse_file(file);
-                match parsed_file {
-                    Ok(file) => Some(file),
-                    Err(e) => {
-                        log::error!(
-                            "{}: {}",
-                            file.file_name().to_str().unwrap_or("Unkown file name"),
-                            e
-                        );
-                        None
-                    }
                 }
             })
-            .collect();
-
-        req_info_list
+            .collect()
     }
 
     fn parse_file(&self, file: &fs::DirEntry) -> Result<ReqInfo> {
