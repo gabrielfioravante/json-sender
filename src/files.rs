@@ -41,14 +41,14 @@ impl ReqInfo {
     }
 }
 
-pub struct Files {
-    target: String,
-    bindinds: HashMap<String, String>,
-}
-
 fn create_dirs(target: &String) {
     fs::create_dir_all(target.to_string() + "/error").unwrap();
     fs::create_dir_all(target.to_string() + "/success").unwrap();
+}
+
+pub struct Files {
+    target: String,
+    bindinds: HashMap<String, String>,
 }
 
 impl Files {
