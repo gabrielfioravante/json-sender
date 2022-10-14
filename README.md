@@ -19,11 +19,12 @@ By default, json-sender looks for a configuration file in the current directory,
 Usage: json-sender [OPTIONS]
 
 Options:
+  -t, --target <TARGET>  Target folder path. Ex: "~/files/"
   -c, --config <CONFIG>  Config file path. Ex: "~/files/sender.toml"
+  -s, --silent           Turn off logging
   -h, --help             Print help information
-  -V, --version          Print version information
+  -V, --version          Print version information```
 ```
-
 ## Configuration
 TOML example:
 ```toml
