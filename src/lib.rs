@@ -1,8 +1,9 @@
+use crate::files::Targets;
 use crate::{files::Files, http::HTTP, settings::Settings};
+use anyhow::Result;
 use clap::Parser;
 use std::sync::Arc;
 use std::time::Instant;
-use anyhow::Result;
 
 pub mod files;
 pub mod http;
@@ -14,6 +15,10 @@ pub mod settings;
 #[command(author = "Gabriel Fioravante")]
 #[command(version="0.1.0", about, long_about = None)]
 pub struct Args {
+    /// Target folder path. Ex: "~/files/".
+    #[arg(short, long)]
+    target: Option<String>,
+
     /// Config file path. Ex: "~/files/sender.toml".
     #[arg(short, long)]
     config: Option<String>,
@@ -37,7 +42,15 @@ pub async fn init() -> Result<()> {
 
     // Process files
     let measure_file = Instant::now();
-    let files = Files::new(settings.target.clone(), settings.bindinds.clone())?;
+
+    let files = Files::new(
+        Targets {
+            param: args.target,
+            config: settings.target.clone(),
+        },
+        settings.bindinds.clone(),
+    )?;
+
     let file_list = files.list()?;
     let files_duration = measure_file.elapsed();
 
@@ -50,10 +63,7 @@ pub async fn init() -> Result<()> {
 
     for f in file_list {
         let h = Arc::clone(&http);
-        tokio::spawn(async move {
-            if (h.handle(f).await).is_ok() {}
-        })
-        .await?
+        tokio::spawn(async move { if (h.handle(f).await).is_ok() {} }).await?
     }
 
     let requests_duration = measure_requests.elapsed();

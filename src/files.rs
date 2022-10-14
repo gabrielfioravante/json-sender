@@ -3,6 +3,7 @@ use anyhow::{anyhow, Result};
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::fs;
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct ReqMetadata {
@@ -21,6 +22,11 @@ pub struct FileData {
 pub struct ReqInfo {
     pub metadata: ReqMetadata,
     pub file_data: FileData,
+}
+
+pub struct Targets {
+    pub param: Option<String>,
+    pub config: Option<String>,
 }
 
 impl ReqInfo {
@@ -47,13 +53,32 @@ fn create_dirs(target: &String) -> Result<()> {
     Ok(())
 }
 
+fn select_target(targets: Targets) -> Result<String> {
+    if let Some(target) = targets.param {
+        if Path::new(&target).exists() {
+            Ok(target)
+        } else {
+            Err(anyhow!("Could not find `{}`. Use a valid path.", target))
+        }
+    } else if let Some(target) = targets.config {
+        if Path::new(&target).exists() {
+            Ok(target)
+        } else {
+            Err(anyhow!("Could not find `{}`. Use a valid path.", target))
+        }
+    } else {
+        Err(anyhow!("Could not find path. Use a valid path."))
+    }
+}
+
 pub struct Files {
     target: String,
     bindinds: HashMap<String, String>,
 }
 
 impl Files {
-    pub fn new(target: String, bindinds: HashMap<String, String>) -> Result<Files> {
+    pub fn new(targets: Targets, bindinds: HashMap<String, String>) -> Result<Files> {
+        let target = select_target(targets)?;
         create_dirs(&target)?;
         Ok(Files { target, bindinds })
     }

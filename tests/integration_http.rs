@@ -1,4 +1,4 @@
-use json_sender::files::Files;
+use json_sender::files::{Files, Targets};
 use json_sender::http::HTTP;
 use json_sender::settings::Settings;
 use std::sync::Arc;
@@ -17,7 +17,15 @@ async fn http() {
 
     // Process files
     let measure_file = Instant::now();
-    let files = Files::new(settings.target.clone(), settings.bindinds.clone()).unwrap();
+
+    let files = Files::new(
+        Targets {
+            param: None,
+            config: settings.target.clone(),
+        },
+        settings.bindinds.clone(),
+    ).unwrap();
+
     let file_list = files.list().unwrap();
     let files_duration = measure_file.elapsed();
 

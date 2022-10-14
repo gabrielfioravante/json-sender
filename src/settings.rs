@@ -23,7 +23,7 @@ pub struct Auth {
 #[derive(Debug, Deserialize, Clone)]
 pub struct Settings {
     pub base_url: String,
-    pub target: String,
+    pub target: Option<String>,
     pub bindinds: HashMap<String, String>,
     pub auth: Option<Auth>,
 }
