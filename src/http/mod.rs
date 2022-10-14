@@ -1,7 +1,8 @@
 use crate::files::ReqInfo;
 use crate::settings::{Auth, Settings};
 use async_trait::async_trait;
-use reqwest::{RequestBuilder, Response, Result};
+use reqwest::{RequestBuilder, Response};
+use anyhow::Result;
 
 use delete::Delete;
 use get::Get;
@@ -46,45 +47,54 @@ trait Request {
         }
     }
 
-    async fn send(&self, req: RequestValidation) {
+    async fn send(&self, req: RequestValidation) -> Result<()> {
         match req {
             RequestValidation::Valid(req, info) => {
                 let res = req.send().await;
-                manage_request_result(res, info).await
-            }
+                manage_request_result(res, info).await?;
+           }
 
-            RequestValidation::NotValid(info) => manage_error(info).await,
+            RequestValidation::NotValid(info) => manage_error(info).await?,
         }
+
+        Ok(())
     }
 
-    async fn handle(&self, http: &HTTP, info: ReqInfo) {
-        self.send(self.make(http, info).await).await;
+    async fn handle(&self, http: &HTTP, info: ReqInfo) -> Result<()> {
+        self.send(self.make(http, info).await).await?;
+        Ok(())
     }
 }
 
-async fn manage_request_result(res: Result<Response>, info: ReqInfo) {
+async fn manage_request_result(res: reqwest::Result<Response>, info: ReqInfo) -> Result<()> {
     match res {
         Ok(r) => {
             let status = r.status();
 
             if status != 200 && status != 201 {
-                manage_error(info).await
+                manage_error(info).await?
             } else {
-                manage_success(info).await
+                manage_success(info).await?
             }
         }
-        Err(_) => manage_error(info).await,
+        Err(_) => manage_error(info).await?,
     }
+
+    Ok(())
 }
 
-async fn manage_error(info: ReqInfo) {
-    info.move_to_folder("error/").await;
-    log::error!("`{}` went wrong!", info.file_data.name)
+async fn manage_error(info: ReqInfo) -> Result<()> {
+    info.move_to_folder("error/").await?;
+    log::error!("`{}` went wrong!", info.file_data.name);
+
+    Ok(())
 }
 
-async fn manage_success(info: ReqInfo) {
-    info.move_to_folder("success/").await;
-    log::info!("`{}` sent!", info.file_data.name)
+async fn manage_success(info: ReqInfo) -> Result<()> {
+    info.move_to_folder("success/").await?;
+    log::info!("`{}` sent!", info.file_data.name);
+
+    Ok(())
 }
 
 fn manage_auth(auth_info: Option<Auth>) -> AuthType {
@@ -121,13 +131,15 @@ impl HTTP {
         }
     }
 
-    pub async fn handle(&self, info: ReqInfo) {
+    pub async fn handle(&self, info: ReqInfo) -> Result<()> {
         match info.metadata.method {
-            Methods::GET => Get {}.handle(self, info).await,
-            Methods::POST => Post {}.handle(self, info).await,
-            Methods::PUT => Put {}.handle(self, info).await,
-            Methods::DELETE => Delete {}.handle(self, info).await,
+            Methods::GET => Get {}.handle(self, info).await?,
+            Methods::POST => Post {}.handle(self, info).await?,
+            Methods::PUT => Put {}.handle(self, info).await?,
+            Methods::DELETE => Delete {}.handle(self, info).await?,
         }
+
+        Ok(())
     }
 
     pub fn generate_url(&self, endpoint: &String) -> String {

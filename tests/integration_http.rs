@@ -13,12 +13,12 @@ mod common;
 async fn http() {
     common::setup();
 
-    let settings = Settings::new(Some("mock/sender.toml".to_owned()));
+    let settings = Settings::new(Some("mock/sender.toml".to_owned())).unwrap();
 
     // Process files
     let measure_file = Instant::now();
-    let files = Files::new(settings.target.clone(), settings.bindinds.clone());
-    let file_list = files.list();
+    let files = Files::new(settings.target.clone(), settings.bindinds.clone()).unwrap();
+    let file_list = files.list().unwrap();
     let files_duration = measure_file.elapsed();
 
     log::info!("Processed files in: {:?}", files_duration);
@@ -32,7 +32,7 @@ async fn http() {
     for f in file_list {
         let h = Arc::clone(&http);
         tokio::spawn(async move {
-            h.handle(f).await;
+            if (h.handle(f).await).is_ok() {}
         })
         .await
         .unwrap();

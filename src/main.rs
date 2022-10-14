@@ -1,4 +1,7 @@
+use anyhow::Result;
+
 #[tokio::main]
-async fn main() {
-    json_sender::init().await;
+async fn main() -> Result<()>  {
+    json_sender::init().await?;
+    Ok(())
 }

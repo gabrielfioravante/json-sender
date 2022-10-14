@@ -29,21 +29,22 @@ impl ReqInfo {
         Ok(file_content)
     }
 
-    pub async fn move_to_folder(&self, folder: &str) {
+    pub async fn move_to_folder(&self, folder: &str) -> Result<()> {
         let mut new_path = self.file_data.path.replace(&self.file_data.name, "");
 
         new_path.push_str(folder);
         new_path.push_str(&self.file_data.name);
 
-        tokio::fs::rename(&self.file_data.path, new_path)
-            .await
-            .unwrap();
+        tokio::fs::rename(&self.file_data.path, new_path).await?;
+
+        Ok(())
     }
 }
 
-fn create_dirs(target: &String) {
-    fs::create_dir_all(target.to_string() + "/error").unwrap();
-    fs::create_dir_all(target.to_string() + "/success").unwrap();
+fn create_dirs(target: &String) -> Result<()> {
+    fs::create_dir_all(target.to_string() + "/error")?;
+    fs::create_dir_all(target.to_string() + "/success")?;
+    Ok(())
 }
 
 pub struct Files {
@@ -52,15 +53,15 @@ pub struct Files {
 }
 
 impl Files {
-    pub fn new(target: String, bindinds: HashMap<String, String>) -> Self {
-        create_dirs(&target);
-        Files { target, bindinds }
+    pub fn new(target: String, bindinds: HashMap<String, String>) -> Result<Files> {
+        create_dirs(&target)?;
+        Ok(Files { target, bindinds })
     }
 
-    pub fn list(&self) -> Vec<ReqInfo> {
-        let files = fs::read_dir(&self.target).unwrap();
+    pub fn list(&self) -> Result<Vec<ReqInfo>> {
+        let files = fs::read_dir(&self.target)?;
 
-        files
+        Ok(files
             .par_bridge()
             .filter_map(|file| -> Option<ReqInfo> {
                 match file {
@@ -85,7 +86,7 @@ impl Files {
                     Err(_) => None,
                 }
             })
-            .collect()
+            .collect())
     }
 
     fn parse_file(&self, file: &fs::DirEntry) -> Result<ReqInfo> {

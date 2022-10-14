@@ -2,6 +2,7 @@ use crate::{files::Files, http::HTTP, settings::Settings};
 use clap::Parser;
 use std::sync::Arc;
 use std::time::Instant;
+use anyhow::Result;
 
 pub mod files;
 pub mod http;
@@ -18,20 +19,20 @@ pub struct Args {
     config: Option<String>,
 }
 
-pub async fn init() {
+pub async fn init() -> Result<()> {
     env_logger::builder()
         .filter_level(log::LevelFilter::Info)
         .init();
 
-    log::info!("Starting JSON Sender");
-
     let args = Args::parse();
-    let settings = Settings::new(args.config);
+    let settings = Settings::new(args.config)?;
+
+    log::info!("Starting JSON Sender");
 
     // Process files
     let measure_file = Instant::now();
-    let files = Files::new(settings.target.clone(), settings.bindinds.clone());
-    let file_list = files.list();
+    let files = Files::new(settings.target.clone(), settings.bindinds.clone())?;
+    let file_list = files.list()?;
     let files_duration = measure_file.elapsed();
 
     log::info!("Processed files in: {:?}", files_duration);
@@ -44,12 +45,13 @@ pub async fn init() {
     for f in file_list {
         let h = Arc::clone(&http);
         tokio::spawn(async move {
-            h.handle(f).await;
+            if (h.handle(f).await).is_ok() {}
         })
-        .await
-        .unwrap();
+        .await?
     }
 
     let requests_duration = measure_requests.elapsed();
     log::info!("Sent requests in: {:?}", requests_duration);
+
+    Ok(())
 }
