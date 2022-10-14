@@ -15,11 +15,11 @@ pub mod settings;
 #[command(author = "Gabriel Fioravante")]
 #[command(version="0.1.0", about, long_about = None)]
 pub struct Args {
-    /// Target folder path. Ex: "~/files/".
+    /// Target folder path. Ex: "example/files/".
     #[arg(short, long)]
     target: Option<String>,
 
-    /// Config file path. Ex: "~/files/sender.toml".
+    /// Config file path. Ex: "example/sender.toml".
     #[arg(short, long)]
     config: Option<String>,
 
