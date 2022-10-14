@@ -17,16 +17,22 @@ pub struct Args {
     /// Config file path. Ex: "~/files/sender.toml".
     #[arg(short, long)]
     config: Option<String>,
+
+    /// Turn off logging
+    #[arg(short, long)]
+    silent: bool,
 }
 
 pub async fn init() -> Result<()> {
-    env_logger::builder()
-        .filter_level(log::LevelFilter::Info)
-        .init();
-
     let args = Args::parse();
     let settings = Settings::new(args.config)?;
 
+    std::env::set_var("RUST_LOG", "INFO");
+    if args.silent {
+        std::env::set_var("RUST_LOG", "OFF");
+    }
+
+    env_logger::init();
     log::info!("Starting JSON Sender");
 
     // Process files

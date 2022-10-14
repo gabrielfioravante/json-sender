@@ -12,9 +12,8 @@ pub fn setup() {
     create_get_file().unwrap();
     create_put_file().unwrap();
 
-    env_logger::builder()
-        .filter_level(log::LevelFilter::Info)
-        .init();
+    std::env::set_var("RUST_LOG", "INFO");
+    env_logger::init()
 }
 
 //TODO: Find a better way to cleanup things after tests
