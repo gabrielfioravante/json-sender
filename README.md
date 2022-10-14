@@ -75,6 +75,7 @@ files_to_send
 ```
 
 ## Features to implement
+- [ ] Implement proper error handling.
 - [ ] Generate files with requests responses
 - [ ] Add target parameter to CLI
-- [ ] Support route after id ("user/ID/comments")
+- [ ] Support route after id "user/ID/comments"
