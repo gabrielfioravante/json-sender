@@ -1,8 +1,8 @@
 use crate::files::ReqInfo;
-use crate::http::{Request, RequestValidation, HTTP, AuthType};
+use crate::http::{AuthType, Request, RequestValidation, HTTP};
 use async_trait::async_trait;
 
-pub struct Delete {}
+pub struct Delete;
 
 #[async_trait]
 impl Request for Delete {

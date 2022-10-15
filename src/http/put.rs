@@ -2,7 +2,7 @@ use crate::files::ReqInfo;
 use crate::http::{AuthType, Request, RequestValidation, HTTP};
 use async_trait::async_trait;
 
-pub struct Put {}
+pub struct Put;
 
 #[async_trait]
 impl Request for Put {
