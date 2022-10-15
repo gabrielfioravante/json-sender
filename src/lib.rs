@@ -41,8 +41,6 @@ pub async fn init() -> Result<()> {
     log::info!("Starting JSON Sender");
 
     // Process files
-    let measure_file = Instant::now();
-
     let files = Files::new(
         Targets {
             param: args.target,
@@ -51,6 +49,7 @@ pub async fn init() -> Result<()> {
         settings.bindinds.clone(),
     )?;
 
+    let measure_file = Instant::now();
     let file_list = files.list()?;
     let files_duration = measure_file.elapsed();
 

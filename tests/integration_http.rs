@@ -16,8 +16,6 @@ async fn http() {
     let settings = Settings::new(Some("mock/sender.toml".to_owned())).unwrap();
 
     // Process files
-    let measure_file = Instant::now();
-
     let files = Files::new(
         Targets {
             param: None,
@@ -26,6 +24,7 @@ async fn http() {
         settings.bindinds.clone(),
     ).unwrap();
 
+    let measure_file = Instant::now();
     let file_list = files.list().unwrap();
     let files_duration = measure_file.elapsed();
 
