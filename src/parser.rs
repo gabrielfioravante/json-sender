@@ -1,4 +1,4 @@
-use crate::file::{Data, FileToSend, RequestData};
+use crate::file::{FileData, FileToSend, RequestData};
 use crate::http::Methods;
 use anyhow::{anyhow, Result};
 use rayon::prelude::*;
@@ -70,10 +70,7 @@ impl FileParser {
             id: self.extract_id(&parameters),
         };
 
-        let data = Data {
-            path: file.path().to_str().unwrap().to_owned(),
-            name: file.file_name().to_str().unwrap().to_owned(),
-        };
+        let data = self.extract_file_data(file)?;
 
         Ok(FileToSend { request_data, data })
     }
@@ -120,6 +117,23 @@ impl FileParser {
         };
 
         id
+    }
+
+    fn extract_file_data(&self, file: &fs::DirEntry) -> Result<FileData> {
+        let binding = file.path();
+        let path = binding
+            .to_str()
+            .ok_or_else(|| anyhow!("Unable to get file path"))?;
+
+        let binding = file.file_name();
+        let name = binding
+            .to_str()
+            .ok_or_else(|| anyhow!("Unable to get file name"))?;
+
+        Ok(FileData {
+            path: path.to_string(),
+            name: name.to_string(),
+        })
     }
 }
 

@@ -11,7 +11,7 @@ pub struct RequestData {
 }
 
 #[derive(Debug)]
-pub struct Data {
+pub struct FileData {
     pub path: String,
     pub name: String,
 }
@@ -19,7 +19,7 @@ pub struct Data {
 #[derive(Debug)]
 pub struct FileToSend {
     pub request_data: RequestData,
-    pub data: Data,
+    pub data: FileData,
 }
 
 impl FileToSend {
