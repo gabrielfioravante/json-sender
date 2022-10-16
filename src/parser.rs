@@ -1,3 +1,4 @@
+use crate::file::{Data, FileToSend, RequestData};
 use crate::http::Methods;
 use anyhow::{anyhow, Result};
 use rayon::prelude::*;
@@ -5,90 +6,29 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
-#[derive(Debug)]
-pub struct ReqMetadata {
-    pub method: Methods,
-    pub endpoint: String,
-    pub id: String,
-}
-
-#[derive(Debug)]
-pub struct FileData {
-    pub path: String,
-    pub name: String,
-}
-
-#[derive(Debug)]
-pub struct ReqInfo {
-    pub metadata: ReqMetadata,
-    pub file_data: FileData,
-}
-
 pub struct Targets {
     pub param: Option<String>,
     pub config: Option<String>,
 }
 
-impl ReqInfo {
-    pub async fn read_file(&self) -> Result<String> {
-        let file_content = tokio::fs::read_to_string(&self.file_data.path).await?;
-        Ok(file_content)
-    }
-
-    pub async fn move_to_folder(&self, folder: &str) -> Result<()> {
-        let mut new_path = self.file_data.path.replace(&self.file_data.name, "");
-
-        new_path.push_str(folder);
-        new_path.push_str(&self.file_data.name);
-
-        tokio::fs::rename(&self.file_data.path, new_path).await?;
-
-        Ok(())
-    }
-}
-
-fn create_dirs(target: &String) -> Result<()> {
-    fs::create_dir_all(target.to_string() + "/error")?;
-    fs::create_dir_all(target.to_string() + "/success")?;
-    Ok(())
-}
-
-fn select_target(targets: Targets) -> Result<String> {
-    if let Some(target) = targets.param {
-        if Path::new(&target).exists() {
-            Ok(target)
-        } else {
-            Err(anyhow!("Could not find `{}`. Use a valid path.", target))
-        }
-    } else if let Some(target) = targets.config {
-        if Path::new(&target).exists() {
-            Ok(target)
-        } else {
-            Err(anyhow!("Could not find `{}`. Use a valid path.", target))
-        }
-    } else {
-        Err(anyhow!("Could not find path. Use a valid path."))
-    }
-}
-
-pub struct Files {
+pub struct FileParser {
     target: String,
     bindinds: HashMap<String, String>,
 }
 
-impl Files {
-    pub fn new(targets: Targets, bindinds: HashMap<String, String>) -> Result<Files> {
+impl FileParser {
+    pub fn new(targets: Targets, bindinds: HashMap<String, String>) -> Result<FileParser> {
         let target = select_target(targets)?;
         create_dirs(&target)?;
-        Ok(Files { target, bindinds })
+        Ok(FileParser { target, bindinds })
     }
 
-    pub fn list(&self) -> Result<Vec<ReqInfo>> {
+    pub fn list_files(&self) -> Result<Vec<FileToSend>> {
         let files = fs::read_dir(&self.target)?;
 
         Ok(files
             .par_bridge()
-            .filter_map(|file| -> Option<ReqInfo> {
+            .filter_map(|file| -> Option<FileToSend> {
                 match file {
                     Ok(file) => {
                         if file.file_type().unwrap().is_file() {
@@ -114,7 +54,7 @@ impl Files {
             .collect())
     }
 
-    fn parse_file(&self, file: &fs::DirEntry) -> Result<ReqInfo> {
+    fn parse_file(&self, file: &fs::DirEntry) -> Result<FileToSend> {
         let name = file.file_name().to_str().unwrap().to_owned();
         self.validate_file_name(&name)?;
 
@@ -124,21 +64,18 @@ impl Files {
         let method = self.extract_method(parameters[0])?;
         let endpoint = self.extract_endpoint(parameters[1])?;
 
-        let metadata = ReqMetadata {
+        let request_data = RequestData {
             method,
             endpoint,
             id: self.extract_id(&parameters),
         };
 
-        let file_data = FileData {
+        let data = Data {
             path: file.path().to_str().unwrap().to_owned(),
             name: file.file_name().to_str().unwrap().to_owned(),
         };
 
-        Ok(ReqInfo {
-            metadata,
-            file_data,
-        })
+        Ok(FileToSend { request_data, data })
     }
 
     fn validate_file_name(&self, name: &str) -> Result<()> {
@@ -184,4 +121,28 @@ impl Files {
 
         id
     }
+}
+
+fn select_target(targets: Targets) -> Result<String> {
+    if let Some(target) = targets.param {
+        if Path::new(&target).exists() {
+            Ok(target)
+        } else {
+            Err(anyhow!("Could not find `{}`. Use a valid path.", target))
+        }
+    } else if let Some(target) = targets.config {
+        if Path::new(&target).exists() {
+            Ok(target)
+        } else {
+            Err(anyhow!("Could not find `{}`. Use a valid path.", target))
+        }
+    } else {
+        Err(anyhow!("Could not find path. Use a valid path."))
+    }
+}
+
+fn create_dirs(target: &String) -> Result<()> {
+    fs::create_dir_all(target.to_string() + "/error")?;
+    fs::create_dir_all(target.to_string() + "/success")?;
+    Ok(())
 }

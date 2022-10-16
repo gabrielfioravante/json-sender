@@ -1,6 +1,4 @@
-use json_sender::files::{Files, Targets};
-use json_sender::http::HTTP;
-use json_sender::settings::Settings;
+use json_sender::{http::HTTP, parser::{FileParser, Targets}, settings::Settings};
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -16,7 +14,7 @@ async fn http() {
     let settings = Settings::new(Some("mock/sender.toml".to_owned())).unwrap();
 
     // Process files
-    let files = Files::new(
+    let parser = FileParser::new(
         Targets {
             param: None,
             config: settings.target.clone(),
@@ -24,11 +22,12 @@ async fn http() {
         settings.bindinds.clone(),
     ).unwrap();
 
-    let measure_file = Instant::now();
-    let file_list = files.list().unwrap();
-    let files_duration = measure_file.elapsed();
+    let measure_parser = Instant::now();
+    let file_list = parser.list_files().unwrap();
+    let parser_duration = measure_parser.elapsed();
 
-    log::info!("Processed files in: {:?}", files_duration);
+    log::info!("Processed files in: {:?}", parser_duration);
+    log::info!("{} requests to send", file_list.len());
 
     assert_eq!(file_list.len(), 3);
 

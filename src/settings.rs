@@ -3,24 +3,24 @@ use config::Config;
 use serde::Deserialize;
 use std::collections::HashMap;
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct Basic {
     pub username: String,
     pub password: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct Bearer {
     pub token: String,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct Auth {
     pub bearer: Option<Bearer>,
     pub basic: Option<Basic>,
 }
 
-#[derive(Debug, Deserialize, Clone)]
+#[derive(Debug, Deserialize)]
 pub struct Settings {
     pub base_url: String,
     pub target: Option<String>,
