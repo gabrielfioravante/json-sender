@@ -1,9 +1,4 @@
-use json_sender::{
-    args::Args,
-    http::HTTP,
-    parser::{FileParser, Targets},
-    settings::Settings,
-};
+use json_sender::{args::Args, http::HTTP, parser::FileParser, settings::Settings, setup};
 
 use anyhow::Result;
 use clap::Parser;
@@ -12,8 +7,14 @@ use std::time::Instant;
 
 #[tokio::main]
 async fn main() -> Result<()> {
+    // Setup
     let args = Args::parse();
     let settings = Settings::new(args.config)?;
+
+    let target = setup::select_target(setup::Targets {
+        param: args.target,
+        config: &settings.target,
+    })?;
 
     // Manage log visibility
     std::env::set_var("RUST_LOG", "INFO");
@@ -25,20 +26,18 @@ async fn main() -> Result<()> {
     log::info!("Starting JSON Sender");
 
     // Process files
-    let parser = FileParser::new(
-        Targets {
-            param: args.target,
-            config: settings.target.clone(),
-        },
-        settings.bindinds.clone(),
-    )?;
+    let parser = FileParser::new(&target, &settings.bindinds)?;
 
     let measure_parser = Instant::now();
     let file_list = parser.list_files()?;
-    let parser_duration = measure_parser.elapsed();
 
-    log::info!("Processed files in: {:?}", parser_duration);
+    log::info!("Processed files in: {:?}", measure_parser.elapsed());
     log::info!("{} requests to send", file_list.len());
+
+    // Create necessary dirs
+    if !file_list.is_empty() {
+        setup::create_dirs(&target)?
+    };
 
     // Send requests
     let http = Arc::new(HTTP::new(settings));
@@ -49,8 +48,7 @@ async fn main() -> Result<()> {
         tokio::spawn(async move { if (h.handle(f).await).is_ok() {} }).await?
     }
 
-    let requests_duration = measure_requests.elapsed();
-    log::info!("Sent requests in: {:?}", requests_duration);
+    log::info!("Sent requests in: {:?}", measure_requests.elapsed());
 
     Ok(())
 }

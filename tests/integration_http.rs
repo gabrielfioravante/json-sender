@@ -1,4 +1,4 @@
-use json_sender::{http::HTTP, parser::{FileParser, Targets}, settings::Settings};
+use json_sender::{http::HTTP, parser::FileParser, settings::Settings, setup};
 use std::sync::Arc;
 use std::time::Instant;
 
@@ -9,17 +9,19 @@ mod common;
 // TODO: Find a better way to write this test
 #[tokio::test]
 async fn http() {
+    // Setup
     common::setup();
-
     let settings = Settings::new(Some("mock/sender.toml".to_owned())).unwrap();
+
+    let target = setup::select_target(setup::Targets {
+        param: None,
+        config: &settings.target,
+    }).unwrap();
 
     // Process files
     let parser = FileParser::new(
-        Targets {
-            param: None,
-            config: settings.target.clone(),
-        },
-        settings.bindinds.clone(),
+        &target,
+        &settings.bindinds
     ).unwrap();
 
     let measure_parser = Instant::now();

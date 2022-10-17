@@ -1,12 +1,11 @@
 use std::fs::File;
 use std::fs;
 use std::io::{Error, Write};
+use json_sender::setup;
 
 //TODO: Find a better way to setup things before tests
 pub fn setup() {
-    fs::create_dir_all("mock/files").unwrap();
-    fs::create_dir_all("mock/files/success").unwrap();
-    fs::create_dir_all("mock/files/error").unwrap();
+    setup::create_dirs(&String::from("mock/files/")).unwrap();
     create_config_file().unwrap();
     create_post_file().unwrap();
     create_get_file().unwrap();

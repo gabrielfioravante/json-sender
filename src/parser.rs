@@ -4,22 +4,14 @@ use anyhow::{anyhow, Result};
 use rayon::prelude::*;
 use std::collections::HashMap;
 use std::fs;
-use std::path::Path;
 
-pub struct Targets {
-    pub param: Option<String>,
-    pub config: Option<String>,
+pub struct FileParser<'a> {
+    target: &'a String,
+    bindinds: &'a HashMap<String, String>,
 }
 
-pub struct FileParser {
-    target: String,
-    bindinds: HashMap<String, String>,
-}
-
-impl FileParser {
-    pub fn new(targets: Targets, bindinds: HashMap<String, String>) -> Result<FileParser> {
-        let target = select_target(targets)?;
-        create_dirs(&target)?;
+impl FileParser<'_> {
+    pub fn new<'a>(target: &'a String, bindinds: &'a HashMap<String, String>) -> Result<FileParser> {
         Ok(FileParser { target, bindinds })
     }
 
@@ -135,28 +127,4 @@ impl FileParser {
             name: name.to_string(),
         })
     }
-}
-
-fn select_target(targets: Targets) -> Result<String> {
-    if let Some(target) = targets.param {
-        if Path::new(&target).exists() {
-            Ok(target)
-        } else {
-            Err(anyhow!("Could not find `{}`. Use a valid path.", target))
-        }
-    } else if let Some(target) = targets.config {
-        if Path::new(&target).exists() {
-            Ok(target)
-        } else {
-            Err(anyhow!("Could not find `{}`. Use a valid path.", target))
-        }
-    } else {
-        Err(anyhow!("Could not find path. Use a valid path."))
-    }
-}
-
-fn create_dirs(target: &String) -> Result<()> {
-    fs::create_dir_all(target.to_string() + "/error")?;
-    fs::create_dir_all(target.to_string() + "/success")?;
-    Ok(())
 }
