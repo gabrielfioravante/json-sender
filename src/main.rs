@@ -34,21 +34,23 @@ async fn main() -> Result<()> {
     log::info!("Processed files in: {:?}", measure_parser.elapsed());
     log::info!("{} requests to send", file_list.len());
 
-    // Create necessary dirs
-    if !file_list.is_empty() {
-        setup::create_dirs(&target)?
+    // Should send requests or not
+    if file_list.is_empty() {
+        log::info!("Ending JSON Sender...");
+    } else {
+        setup::create_dirs(&target)?;
+
+        // Send requests
+        let http = Arc::new(HTTP::new(settings));
+        let measure_requests = Instant::now();
+
+        for f in file_list {
+            let h = Arc::clone(&http);
+            tokio::spawn(async move { if (h.handle(f).await).is_ok() {} }).await?
+        }
+
+        log::info!("Sent requests in: {:?}", measure_requests.elapsed());
     };
-
-    // Send requests
-    let http = Arc::new(HTTP::new(settings));
-    let measure_requests = Instant::now();
-
-    for f in file_list {
-        let h = Arc::clone(&http);
-        tokio::spawn(async move { if (h.handle(f).await).is_ok() {} }).await?
-    }
-
-    log::info!("Sent requests in: {:?}", measure_requests.elapsed());
 
     Ok(())
 }
