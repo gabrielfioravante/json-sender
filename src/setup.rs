@@ -7,16 +7,16 @@ pub struct Targets<'a> {
     pub config: &'a Option<String>,
 }
 
-pub fn select_target(targets: Targets) -> Result<String> {
-    if let Some(target) = targets.param {
+pub fn select_target<'a>(param_target: &'a Option<String>, config_target: &'a Option<String>) -> Result<&String> {
+    if let Some(target) = param_target {
         if Path::new(&target).exists() {
             Ok(target)
         } else {
             Err(anyhow!("Could not find `{}`. Use a valid path.", target))
         }
-    } else if let Some(target) = &targets.config {
+    } else if let Some(target) = config_target {
         if Path::new(&target).exists() {
-            Ok(target.to_string())
+            Ok(target)
         } else {
             Err(anyhow!("Could not find `{}`. Use a valid path.", target))
         }

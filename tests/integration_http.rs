@@ -13,14 +13,11 @@ async fn http() {
     common::setup();
     let settings = Settings::new(Some("mock/sender.toml".to_owned())).unwrap();
 
-    let target = setup::select_target(setup::Targets {
-        param: None,
-        config: &settings.target,
-    }).unwrap();
+    let target = setup::select_target(&None, &settings.target).unwrap();
 
     // Process files
     let parser = FileParser::new(
-        &target,
+        target,
         &settings.bindinds
     ).unwrap();
 

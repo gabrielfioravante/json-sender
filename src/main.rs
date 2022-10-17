@@ -11,10 +11,7 @@ async fn main() -> Result<()> {
     let args = Args::parse();
     let settings = Settings::new(args.config)?;
 
-    let target = setup::select_target(setup::Targets {
-        param: args.target,
-        config: &settings.target,
-    })?;
+    let target = setup::select_target(&args.target, &settings.target)?;
 
     // Manage log visibility
     std::env::set_var("RUST_LOG", "INFO");
@@ -26,7 +23,7 @@ async fn main() -> Result<()> {
     log::info!("Starting JSON Sender");
 
     // Process files
-    let parser = FileParser::new(&target, &settings.bindinds)?;
+    let parser = FileParser::new(target, &settings.bindinds)?;
 
     let measure_parser = Instant::now();
     let file_list = parser.list_files()?;
@@ -38,7 +35,7 @@ async fn main() -> Result<()> {
     if file_list.is_empty() {
         log::info!("Ending JSON Sender...");
     } else {
-        setup::create_dirs(&target)?;
+        setup::create_dirs(target)?;
 
         // Send requests
         let http = Arc::new(HTTP::new(settings));
