@@ -30,6 +30,7 @@ TOML example:
 ```toml
 base_url = "https://jsonplaceholder.typicode.com"
 target = "example/files_to_send"
+write_response = false      # true by default
 
 # You can setup authentication
 [auth]
@@ -61,7 +62,8 @@ DELETE_POSTS_22_1659582053.json
 ```
 
 ## Folder structure
-Files in which the requests succeeded will be moved to the `success` folder. The ones that failed, to the `failed` folder. These folders are created automatically.
+Files in which the requests succeeded will be moved to the `success` folder. The ones that failed, to the `failed` folder.
+By default, all the response files, the files that contain the requests response body, are created inside the `response` folder.These folders are created automatically.
 
 ```
 files_to_send
@@ -69,14 +71,18 @@ files_to_send
 ├── POST_POSTS_1644806288.json
 ├── PUT_POSTS_13_1652633341.json
 ├── error
-│   └── GET_USERS_1653788628.json
-└── success
-    ├── DELETE_POSTS_17_1659582053.json
-    └── GET_USERS_1645921047.json
+│  └── GET_USERS_1653788628.json
+├── success
+│  ├── DELETE_POSTS_17_1659582053.json
+│  └── GET_USERS_1645921047.json
+└── response
+   └── 201_POST_POSTS_1644806288.json
 ```
+
+Response files have their status code as prefix.
 
 ## Features to implement
 - [X] Implement proper error handling.
-- [ ] Generate files with requests responses
+- [X] Generate files with requests responses
 - [X] Add target parameter to CLI
 - [ ] Support route after id "user/ID/comments"

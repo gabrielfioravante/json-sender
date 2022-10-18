@@ -2,6 +2,8 @@ use crate::http::{AuthType, Methods, HTTP};
 use anyhow::Result;
 use reqwest::RequestBuilder;
 use reqwest::Response;
+use tokio::fs::File;
+use tokio::io::AsyncWriteExt;
 
 #[derive(Debug)]
 pub struct RequestData {
@@ -20,6 +22,7 @@ pub struct FileData {
 pub struct FileToSend {
     pub request_data: RequestData,
     pub data: FileData,
+    pub write_response: bool,
 }
 
 impl FileToSend {
@@ -49,9 +52,27 @@ impl FileToSend {
                 } else {
                     self.manage_error().await?
                 }
+
+                if self.write_response {
+                    self.write_response_to_file(res).await?
+                };
             }
             Err(_) => self.manage_error().await?,
         }
+
+        Ok(())
+    }
+
+    async fn write_response_to_file(&self, response: Response) -> Result<()> {
+        let mut file_path = self.data.path.replace(&self.data.name, "");
+        file_path.push_str("response/");
+        file_path.push_str(&(response.status().as_u16().to_string() + "_"));
+        file_path.push_str(&self.data.name);
+
+        let text = response.bytes().await?;
+
+        let mut new_file = File::create(file_path).await?;
+        new_file.write_all(&text).await?;
 
         Ok(())
     }

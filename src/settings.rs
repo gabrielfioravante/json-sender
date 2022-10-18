@@ -26,6 +26,7 @@ pub struct Settings {
     pub target: Option<String>,
     pub bindinds: HashMap<String, String>,
     pub auth: Option<Auth>,
+    pub write_response: Option<bool>,
 }
 
 impl Settings {

@@ -16,10 +16,7 @@ async fn http() {
     let target = setup::select_target(&None, &settings.target).unwrap();
 
     // Process files
-    let parser = FileParser::new(
-        target,
-        &settings.bindinds
-    ).unwrap();
+    let parser = FileParser::new(target, &settings.bindinds, settings.write_response).unwrap();
 
     let measure_parser = Instant::now();
     let file_list = parser.list_files().unwrap();
@@ -36,11 +33,9 @@ async fn http() {
 
     for f in file_list {
         let h = Arc::clone(&http);
-        tokio::spawn(async move {
-            if (h.handle(f).await).is_ok() {}
-        })
-        .await
-        .unwrap();
+        tokio::spawn(async move { if (h.handle(f).await).is_ok() {} })
+            .await
+            .unwrap();
     }
 
     let requests_duration = measure_requests.elapsed();
@@ -49,6 +44,10 @@ async fn http() {
     test_post();
     test_get();
     test_put();
+
+    test_post_response();
+    test_get_response();
+    test_put_response();
 
     common::cleanup();
 }
@@ -75,4 +74,28 @@ fn test_put() {
         .unwrap();
 
     assert!(put_file);
+}
+
+fn test_post_response() {
+    let path = "mock/files/success/POST_POSTS_1644806288.json";
+    let file = Path::new(path).try_exists().unwrap();
+
+    assert!(file);
+    assert!(!std::fs::read(path).unwrap().is_empty())
+}
+
+fn test_get_response() {
+    let path = "mock/files/response/200_PUT_USERS_1_1644806288.json";
+    let file = Path::new(path).try_exists().unwrap();
+
+    assert!(file);
+    assert!(!std::fs::read(path).unwrap().is_empty())
+}
+
+fn test_put_response() {
+    let path = "mock/files/success/PUT_USERS_1_1644806288.json";
+    let file = Path::new(path).try_exists().unwrap();
+
+    assert!(file);
+    assert!(!std::fs::read(path).unwrap().is_empty())
 }

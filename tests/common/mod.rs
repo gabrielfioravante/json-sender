@@ -1,7 +1,7 @@
-use std::fs::File;
-use std::fs;
-use std::io::{Error, Write};
 use json_sender::setup;
+use std::fs;
+use std::fs::File;
+use std::io::{Error, Write};
 
 //TODO: Find a better way to setup things before tests
 pub fn setup() {
@@ -27,6 +27,7 @@ fn create_config_file() -> Result<(), Error> {
         r#"
 base_url = "https://jsonplaceholder.typicode.com"
 target = "mock/files"
+write_response = true
 
 [bindinds]
 POSTS = "/posts"
@@ -39,31 +40,21 @@ USERS = "/users"
 
 fn create_post_file() -> Result<(), Error> {
     let mut file = File::create("mock/files/POST_POSTS_1644806288.json")?;
-    write!(
-        file,
-        r#"{{"title": "foo", "body": "bar", "userId": 1 }}"#
-    )?;
+    write!(file, r#"{{"title": "foo", "body": "bar", "userId": 1 }}"#)?;
 
     Ok(())
 }
 
 fn create_get_file() -> Result<(), Error> {
     let mut file = File::create("mock/files/GET_USERS_1644806288.json")?;
-    write!(
-        file,
-        r#""#
-    )?;
+    write!(file, r#""#)?;
 
     Ok(())
 }
 
-
 fn create_put_file() -> Result<(), Error> {
     let mut file = File::create("mock/files/PUT_USERS_1_1644806288.json")?;
-    write!(
-        file,
-        r#"{{"name": "gabriel"}}"#
-    )?;
+    write!(file, r#"{{"name": "gabriel"}}"#)?;
 
     Ok(())
 }

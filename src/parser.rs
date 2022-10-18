@@ -8,15 +8,21 @@ use std::fs;
 pub struct FileParser<'a> {
     target: &'a String,
     bindinds: &'a HashMap<String, String>,
+    write_response: Option<bool>,
 }
 
 impl FileParser<'_> {
-    pub fn new<'a>(target: &'a String, bindinds: &'a HashMap<String, String>) -> Result<FileParser> {
-        Ok(FileParser { target, bindinds })
+    pub fn new<'a>(
+        target: &'a String,
+        bindinds: &'a HashMap<String, String>,
+        write_response: Option<bool>,
+    ) -> Result<FileParser> {
+        Ok(FileParser { target, bindinds, write_response })
     }
 
     pub fn list_files(&self) -> Result<Vec<FileToSend>> {
         let files = fs::read_dir(&self.target)?;
+        let write_response = FileParser::should_write_response(self.write_response);
 
         Ok(files
             .par_bridge()
@@ -24,7 +30,7 @@ impl FileParser<'_> {
                 match file {
                     Ok(file) => {
                         if file.file_type().unwrap().is_file() {
-                            let parsed_file = self.parse_file(&file);
+                            let parsed_file = self.parse_file(&file, write_response);
                             match parsed_file {
                                 Ok(file) => Some(file),
                                 Err(e) => {
@@ -46,7 +52,7 @@ impl FileParser<'_> {
             .collect())
     }
 
-    fn parse_file(&self, file: &fs::DirEntry) -> Result<FileToSend> {
+    fn parse_file(&self, file: &fs::DirEntry, write_response: bool) -> Result<FileToSend> {
         let name = file.file_name().to_str().unwrap().to_owned();
         self.validate_file_name(&name)?;
 
@@ -64,7 +70,7 @@ impl FileParser<'_> {
 
         let data = self.extract_file_data(file)?;
 
-        Ok(FileToSend { request_data, data })
+        Ok(FileToSend { request_data, data, write_response })
     }
 
     fn validate_file_name(&self, name: &str) -> Result<()> {
@@ -126,5 +132,13 @@ impl FileParser<'_> {
             path: path.to_string(),
             name: name.to_string(),
         })
+    }
+
+    fn should_write_response(option: Option<bool>) -> bool {
+        if let Some(opt) = option {
+            opt
+        } else {
+            true
+        }
     }
 }

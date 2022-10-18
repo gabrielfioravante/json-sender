@@ -23,7 +23,7 @@ async fn main() -> Result<()> {
     log::info!("Starting JSON Sender");
 
     // Process files
-    let parser = FileParser::new(target, &settings.bindinds)?;
+    let parser = FileParser::new(target, &settings.bindinds, settings.write_response)?;
 
     let measure_parser = Instant::now();
     let file_list = parser.list_files()?;
