@@ -553,7 +553,6 @@ name = "json-sender"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "async-trait",
  "clap",
  "config",
  "env_logger",
