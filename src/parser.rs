@@ -17,7 +17,11 @@ impl FileParser<'_> {
         bindinds: &'a HashMap<String, String>,
         write_response: Option<bool>,
     ) -> Result<FileParser> {
-        Ok(FileParser { target, bindinds, write_response })
+        Ok(FileParser {
+            target,
+            bindinds,
+            write_response,
+        })
     }
 
     pub fn list_files(&self) -> Result<Vec<FileToSend>> {
@@ -70,7 +74,11 @@ impl FileParser<'_> {
 
         let data = self.extract_file_data(file)?;
 
-        Ok(FileToSend { request_data, data, write_response })
+        Ok(FileToSend {
+            request_data,
+            data,
+            write_response,
+        })
     }
 
     fn validate_file_name(&self, name: &str) -> Result<()> {
@@ -107,14 +115,12 @@ impl FileParser<'_> {
         }
     }
 
-    fn extract_id(&self, parameters: &Vec<&str>) -> String {
-        let mut id = String::from("");
-
+    fn extract_id(&self, parameters: &Vec<&str>) -> Option<String> {
         if parameters.len() == 4 {
-            id = parameters[2].to_string();
-        };
-
-        id
+            Some(parameters[2].to_string())
+        } else {
+            None
+        }
     }
 
     fn extract_file_data(&self, file: &fs::DirEntry) -> Result<FileData> {

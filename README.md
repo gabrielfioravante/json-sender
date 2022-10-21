@@ -45,7 +45,7 @@ password="123"
 
 # You MUST bind some key to an API endpoint.
 [bindinds]
-USERS = "/users"
+USERS = "/users/#" # If your file have an ID, it will replace the '#'
 POSTS = "/posts"
 RANDOM = "/random_endpoints"
 ```
@@ -85,4 +85,4 @@ Response files have their status code as prefix.
 - [X] Implement proper error handling.
 - [X] Generate files with requests responses
 - [X] Add target parameter to CLI
-- [ ] Support route after id "user/ID/comments"
+- [X] Support route after id "user/ID/comments"

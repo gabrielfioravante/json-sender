@@ -36,12 +36,13 @@ impl HTTP {
         Ok(())
     }
 
-    pub fn generate_url(&self, endpoint: &String) -> String {
-        format!("{}{}", self.base_url, endpoint)
-    }
-
-    pub fn generate_url_with_id(&self, endpoint: &String, id: &String) -> String {
-        format!("{}{}/{}", self.base_url, endpoint, id)
+    pub fn generate_url(&self, endpoint: &String, id: &Option<String>) -> String {
+        if let Some(url_id) = id {
+            let formatted_endpoint = endpoint.replace('#', url_id);
+            format!("{}{}", self.base_url, formatted_endpoint)
+        } else {
+            format!("{}{}", self.base_url, endpoint)
+        }
     }
 
     fn manage_auth(auth_info: Option<Auth>) -> AuthType {

@@ -9,7 +9,7 @@ use tokio::io::AsyncWriteExt;
 pub struct RequestData {
     pub method: Methods,
     pub endpoint: String,
-    pub id: String,
+    pub id: Option<String>,
 }
 
 #[derive(Debug)]
@@ -108,30 +108,24 @@ impl FileToSend {
 
         match self.get_method() {
             Methods::GET => {
-                builder = client.get(
-                    http.generate_url_with_id(&self.request_data.endpoint, &self.request_data.id),
-                );
+                builder = client
+                    .get(http.generate_url(&self.request_data.endpoint, &self.request_data.id));
             }
             Methods::POST => {
                 let json = self.read_file().await?;
                 builder = client
-                    .post(http.generate_url(&self.request_data.endpoint))
+                    .post(http.generate_url(&self.request_data.endpoint, &self.request_data.id))
                     .body(json);
             }
             Methods::PUT => {
                 let json = self.read_file().await?;
-                builder =
-                    client
-                        .put(http.generate_url_with_id(
-                            &self.request_data.endpoint,
-                            &self.request_data.id,
-                        ))
-                        .body(json);
+                builder = client
+                    .put(http.generate_url(&self.request_data.endpoint, &self.request_data.id))
+                    .body(json);
             }
             Methods::DELETE => {
-                builder = client.delete(
-                    http.generate_url_with_id(&self.request_data.endpoint, &self.request_data.id),
-                );
+                builder = client
+                    .delete(http.generate_url(&self.request_data.endpoint, &self.request_data.id));
             }
         }
 

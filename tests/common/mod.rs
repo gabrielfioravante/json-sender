@@ -31,7 +31,7 @@ write_response = true
 
 [bindinds]
 POSTS = "/posts"
-USERS = "/users"
+USERS = "/users/#"
 "#
     )?;
 
